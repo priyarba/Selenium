@@ -7,14 +7,17 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.Select;
 
 public class ElementUtil_02 {
 
-	WebDriver driver;
+	private WebDriver driver;
+	private Actions act;
 
 	public ElementUtil_02(WebDriver driver) {
 		this.driver = driver;
+		act = new Actions(driver);
 	}
 
 	// why are static not allowed in ElementUtil
@@ -332,4 +335,48 @@ public class ElementUtil_02 {
 			}
 		}
 	}
+	
+	//*************************Actions Utils ***************************************
+	
+	public void doMoveToElement(By locator) throws InterruptedException {
+		act.moveToElement(getElement(locator)).build().perform();
+		Thread.sleep(2000);
+	}
+	
+	
+	//Generic method to perform mouse action
+		public void handleParentSubMenu(By parentMenu, By subMenu) throws InterruptedException {
+			doMoveToElement(parentMenu);
+			doClick(subMenu);
+		}
+		
+		//Generic method to perform for 4 level Menu
+		public void handle4LevelMenuHandle(By level1Menu, By level2Menu, By level3Menu, By level4Menu) throws InterruptedException {
+			getElement(level1Menu).click();
+			//doClick(level1Menu);
+			Thread.sleep(2000);
+			doMoveToElement(level2Menu);
+			doMoveToElement(level3Menu);
+			getElement(level4Menu).click();
+			//doClick(level4Menu);
+		}
+		//Actions: SendKeys
+		public void doActionsSendKeys(By locator, String value) {
+			act.sendKeys(getElement(locator), value).perform();
+		}
+		//Actions: Click
+		public void doActionsClick(By locator) {
+			act.click(getElement(locator)).perform();
+		}
+		
+		public void doSendKeysWithPause(By locator, String value, long pauseTime) {
+			//convert to char array
+			char val[] = value.toCharArray();
+			for(char ch : val) { //'n' -> "n"
+				act
+				.sendKeys(getElement(locator), String.valueOf(ch))
+				.pause(pauseTime)
+				.perform();
+			}
+		}
 }

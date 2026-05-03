@@ -7,7 +7,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 
-public class Assignment1MultiSelect {
+public class Assignment1MultiSelect02 {
 	static WebDriver driver;
 
 	public static void main(String[] args) throws InterruptedException {

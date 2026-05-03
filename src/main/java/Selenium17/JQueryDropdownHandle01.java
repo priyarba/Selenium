@@ -36,6 +36,9 @@ public class JQueryDropdownHandle01 {
 		selectChoice(choice, choiceList, "all");
 
 	}
+	/**
+	 *  /** enter
+	 */
 	
 	/**
 	 * this method is used to select the choices with 3 different use cases:
