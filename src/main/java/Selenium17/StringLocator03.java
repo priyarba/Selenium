@@ -7,7 +7,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 import Selenium06.ElementUtil_02;
 
-public class StringLocator {
+public class StringLocator03 {
 	
 	static WebDriver driver;
 	public static void main(String[] args) throws InterruptedException {
@@ -25,10 +25,12 @@ public class StringLocator {
 		
 		Thread.sleep(3000);
 		
+		//to select the checkbox
 		ElementUtil_02 element = new ElementUtil_02(driver);
 		element.doClick("NAME", checkBox_name);
 		//element.doClick(element.getBy("NAME", checkBox_name));
 		
+		//to send the value in the text field
 		element.doSendKeys("ID", firstname_ID, "Priya");
 		element.doSendKeys("ID", lastname_ID, "Biradar");
 		element.doSendKeys("NAME", email_name, "XYZ@gmail.com");
@@ -39,47 +41,5 @@ public class StringLocator {
 	public static WebElement getElement(By locator) {
 		return driver.findElement(locator);
 	}
-	
-	public static WebElement getElement(String locatorType, String locatorValue) {
-		return driver.findElement(getBy(locatorType,locatorValue));
-	}
-	
-	public static By getBy(String locatorType, String locatorValue) {
-		By locator = null;
-		switch (locatorType.toUpperCase()) {
-		case "ID":
-			locator = By.id(locatorValue);
-			break;
-		case "NAME":
-			locator = By.name(locatorValue);
-			break;
-		case "CLASSNAME":
-			locator = By.className(locatorValue);
-			break;
-		case "XPATH":
-			locator = By.xpath(locatorValue);
-			break;
-		case "LINKTEXT":
-			locator = By.linkText(locatorValue);
-			break;
-		case "PARTIALLINKTEXT":
-			locator = By.partialLinkText(locatorValue);
-			break;
-		case "CSS":
-			locator = By.cssSelector(locatorValue);
-			break;
-		case "TAGNAME":
-			locator = By.tagName(locatorValue);
-			break;
-
-		default:
-			System.out.println("Please pass the correct locator type"+ locator);
-			break;
-		}
-		
-		return locator;
-	}
-	
-	
 
 }
