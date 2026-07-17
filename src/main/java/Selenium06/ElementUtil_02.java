@@ -1,14 +1,22 @@
 package Selenium06;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.Wait;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class ElementUtil_02 {
 
@@ -43,7 +51,7 @@ public class ElementUtil_02 {
 		nullCheck(value);
 		getElement(locator).sendKeys(value);
 	}
-	
+
 	public void doSendKeys(String locatorType, String locatorValue, String value) {
 		nullCheck(value);
 		getElement(locatorType, locatorValue).sendKeys(value);
@@ -58,7 +66,7 @@ public class ElementUtil_02 {
 	public void doClick(By locator) {
 		getElement(locator).click();
 	}
-	
+
 	public void doClick(String locatorType, String locatorValue) {
 		getElement(locatorType, locatorValue).click();
 	}
@@ -91,7 +99,7 @@ public class ElementUtil_02 {
 			return false;
 		}
 	}
-	
+
 	public By getBy(String locatorType, String locatorValue) {
 		By locator = null;
 		switch (locatorType.toUpperCase()) {
@@ -120,18 +128,23 @@ public class ElementUtil_02 {
 			locator = By.tagName(locatorValue);
 			break;
 		default:
-			System.out.println("Please pass the correct locator type"+ locator);
+			System.out.println("Please pass the correct locator type" + locator);
 			break;
-		}		
+		}
 		return locator;
 	}
-	
+
 	public WebElement getElement(String locatorType, String locatorValue) {
-		return driver.findElement(getBy(locatorType,locatorValue));
+		return driver.findElement(getBy(locatorType, locatorValue));
 	}
 
 	public WebElement getElement(By locator) {
 		return driver.findElement(locator);
+	}
+
+	// findElement with wait
+	public WebElement getElementWithWait(By locator, int timeOut) {
+		return waitForElementVisibility(locator, timeOut);
 	}
 
 	// ***************************FindElements Utils***************************
@@ -195,7 +208,8 @@ public class ElementUtil_02 {
 		return driver.findElements(locator);
 	}
 
-	// *******************Dropdown Utils - without using select**********************
+	// *******************Dropdown Utils - without using
+	// select**********************
 
 	public void noSelectDropdown(By locator, String value) {
 		List<WebElement> eleList = getElements(locator);
@@ -304,8 +318,9 @@ public class ElementUtil_02 {
 			return false;
 		}
 	}
-	
-	//*******************Dropdown Util -- Non Select Based**************************
+
+	// *******************Dropdown Util -- Non Select
+	// Based**************************
 	public void selectChoice(By choice, By choiceList, String... choiceValue) throws InterruptedException {
 		doClick(choice);
 		Thread.sleep(2000);
@@ -315,7 +330,7 @@ public class ElementUtil_02 {
 		List<WebElement> choices = getElements(choiceList);
 		System.out.println(choices.size());
 
-		//logic to select all the options
+		// logic to select all the options
 		if (choiceValue[0].equalsIgnoreCase("ALL")) {
 			for (WebElement e : choices) {
 				e.click();
@@ -335,48 +350,272 @@ public class ElementUtil_02 {
 			}
 		}
 	}
-	
-	//*************************Actions Utils ***************************************
-	
+
+	// *************************Actions Utils
+	// ***************************************
+
 	public void doMoveToElement(By locator) throws InterruptedException {
 		act.moveToElement(getElement(locator)).build().perform();
 		Thread.sleep(2000);
 	}
+
+	// Generic method to perform mouse action
+	public void handleParentSubMenu(By parentMenu, By subMenu) throws InterruptedException {
+		doMoveToElement(parentMenu);
+		doClick(subMenu);
+	}
+
+	// Generic method to perform for 4 level Menu
+	public void handle4LevelMenuHandle(By level1Menu, By level2Menu, By level3Menu, By level4Menu)
+			throws InterruptedException {
+		getElement(level1Menu).click();
+		// doClick(level1Menu);
+		Thread.sleep(2000);
+		doMoveToElement(level2Menu);
+		doMoveToElement(level3Menu);
+		getElement(level4Menu).click();
+		// doClick(level4Menu);
+	}
+
+	// Actions: SendKeys
+	public void doActionsSendKeys(By locator, String value) {
+		act.sendKeys(getElement(locator), value).perform();
+	}
+
+	// Actions: Click
+	public void doActionsClick(By locator) {
+		act.click(getElement(locator)).perform();
+	}
+
+	public void doSendKeysWithPause(By locator, String value, long pauseTime) {
+		// convert to char array
+		char val[] = value.toCharArray();
+		for (char ch : val) { // 'n' -> "n"
+			act.sendKeys(getElement(locator), String.valueOf(ch)).pause(pauseTime).perform();
+		}
+	}
+
+	// ************************ Wait Utils *****************************************
+	/**
+	 * 1. presenceOfElementLocated 2. presenceOfAllElementsLocatedBy 3.
+	 * visibilityOfElementLocated 4. visibilityOfAllElementsLocatedBy 3.
+	 * elementToBeClickable 4. alertIsPresent 5. titleContains 6. titleIs 7.
+	 * urlContains 8. urlToBe 9. frameToBeAvailableAndSwitchToIt 10.
+	 * numberOfWindowsToBe
+	 *
+	 */
+
+	/**
+	 * An expectation for checking that an element is present on the DOM of a page.
+	 * This does not necessarily mean that the element is visible.
+	 * 
+	 * @param locator
+	 * @param timeOut
+	 * @return
+	 */
+	public WebElement waitForElementPresence(By locator, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+	}
+
+	/**
+	 * An expectation for checking that there is at least one element present on a
+	 * web page.
+	 * 
+	 * @param locator
+	 * @param timeout
+	 * @return
+	 */
+	public List<WebElement> waitForAllElementsPresence(By locator, int timeout) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeout));
+		return wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator));
+	}
+
+	/**
+	 * An expectation for checking that an element is present on the DOM of a page
+	 * and visible. Visibility means that the element is not only displayed but also
+	 * has a height and width that is greater than 0.
+	 * 
+	 * @param locator
+	 * @param timeOut
+	 * @return
+	 */
+	public WebElement waitForElementVisibility(By locator, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+	}
+
+	/**
+	 * An expectation for checking that all elements present on the web page that match the locator are visible. 
+	 * Visibility means that the elements are not only displayed but also have a height and width that is greater than 0.
+	 * 
+	 * @param locator
+	 * @param timeOut
+	 * @return
+	 */
+	public List<WebElement> waitForAllElementsVisibility(By locator, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		return wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator));
+	}
+
+	/**
+	 * An expectation for checking an element is visible and enabled such that you
+	 * can click it.
+	 * 
+	 * @param locator
+	 * @param timeOut
+	 */
+	public void clickWhenReady(By locator, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
+	}
+
+	// click with timeout
+	public void clickWithWait(By locator, int timeOut) {
+		waitForElementVisibility(locator, timeOut).click();
+	}
+
+	// sendKeys with timeout
+	public void sendKeysWithWait(By locator, int timeOut, CharSequence... value) {
+		waitForElementVisibility(locator, timeOut).sendKeys(value);
+	}
+
+	// ********************************** Wait for Alert(JavaScript popup
+	// )******************************
+	// apply timeout on Alert and switch to alert
+	public Alert waitForAlert(int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		return wait.until(ExpectedConditions.alertIsPresent());
+	}
+
+	// Accept alert
+	public void acceptAlert(int timeOut) {
+		waitForAlert(timeOut).accept();
+	}
+
+	// Cancel Alert
+	public void dismissAlert(int timeout) {
+		waitForAlert(timeout).dismiss();
+	}
+
+	// Get alert text
+	public void getTextAlert(int timeout) {
+		waitForAlert(timeout).getText();
+	}
+
+	// Enter text on alert popup
+	public void sendKeysAlert(int timeOut, String value) {
+		waitForAlert(timeOut).sendKeys(value);
+	}
+
+	// ******************** Wait for Title ************************************
+
+	// fraction title: titleContains()
+	public String waitForTitleContains(String fractionTitle, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		try {
+			wait.until(ExpectedConditions.titleContains(fractionTitle));
+			return driver.getTitle();
+		} catch (TimeoutException e) {
+			return null;
+		}
+	}
+
+	// titleIs()
+	public String waitForTitleIs(String title, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		try {
+			wait.until(ExpectedConditions.titleIs(title));
+			return driver.getTitle();
+		} catch (TimeoutException e) {
+			return null;
+		}
+	}
+
+	// ********************** Wait for URL **********************************
+	// fraction URL: urlContains()
+	public String waitForURLContains(String fractionURL, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		try {
+			wait.until(ExpectedConditions.urlContains(fractionURL));
+			return driver.getCurrentUrl();
+		} catch (TimeoutException e) {
+			return null;
+		}
+	}
+
+	// urlToBe(url)
+	public String waitForURLIs(String url, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		try {
+			wait.until(ExpectedConditions.urlToBe(url));
+			return driver.getCurrentUrl();
+		} catch (TimeoutException e) {
+			return null;
+		}
+	}
+
+	// ************************** Wait for Frame ***********************************
+
+	public void waitForFrameAndSwitchToIt(By frameLocator, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameLocator));
+	}
+
+	public void waitForFrameAndSwitchToIt(String frameNameOrID, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameNameOrID));
+	}
+
+	public void waitForFrameAndSwitchToIt(int frameIndex, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameIndex));
+	}
+
+	public void waitForFrameAndSwitchToIt(WebElement frameElement, int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameElement));
+	}
+
+	// ******************* Wait for Windows *******************************
+	public boolean waitForWindow(int timeOut, int expectedNumberOfWindows) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		try {
+			return wait.until(ExpectedConditions.numberOfWindowsToBe(expectedNumberOfWindows));
+		} catch (Exception e) {
+			System.out.println("Expected number of windows are not correct");
+			return false;
+		}
+	}
 	
+	//********************* With Fluent Wait *****************************
 	
-	//Generic method to perform mouse action
-		public void handleParentSubMenu(By parentMenu, By subMenu) throws InterruptedException {
-			doMoveToElement(parentMenu);
-			doClick(subMenu);
-		}
-		
-		//Generic method to perform for 4 level Menu
-		public void handle4LevelMenuHandle(By level1Menu, By level2Menu, By level3Menu, By level4Menu) throws InterruptedException {
-			getElement(level1Menu).click();
-			//doClick(level1Menu);
-			Thread.sleep(2000);
-			doMoveToElement(level2Menu);
-			doMoveToElement(level3Menu);
-			getElement(level4Menu).click();
-			//doClick(level4Menu);
-		}
-		//Actions: SendKeys
-		public void doActionsSendKeys(By locator, String value) {
-			act.sendKeys(getElement(locator), value).perform();
-		}
-		//Actions: Click
-		public void doActionsClick(By locator) {
-			act.click(getElement(locator)).perform();
-		}
-		
-		public void doSendKeysWithPause(By locator, String value, long pauseTime) {
-			//convert to char array
-			char val[] = value.toCharArray();
-			for(char ch : val) { //'n' -> "n"
-				act
-				.sendKeys(getElement(locator), String.valueOf(ch))
-				.pause(pauseTime)
-				.perform();
-			}
-		}
+	//FluentWait : visibilityOfElementLocated
+	public WebElement waitForElementVisibleWithFluentWait(By locator, int timeOut, int pollingTime) {
+		Wait<WebDriver> wait = new FluentWait<WebDriver>(driver)
+				.withTimeout(Duration.ofSeconds(timeOut))
+				.pollingEvery(Duration.ofSeconds(pollingTime))
+				.ignoring(NoSuchElementException.class)
+				.ignoring(StaleElementReferenceException.class)
+				.withMessage("===Element Not Found===");
+		return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));		
+	}
+	
+	//FluentWait : presenceOfElementLocated
+	public void waitForElementPresenceWithFluentWait(By locator, int timeOut, int pollingTime) {
+		Wait<WebDriver> wait = new FluentWait<WebDriver>(driver)
+				.withTimeout(Duration.ofSeconds(timeOut))
+				.pollingEvery(Duration.ofSeconds(pollingTime))
+				.ignoring(NoSuchElementException.class, StaleElementReferenceException.class)
+				.withMessage("===Element Not Found");
+		wait.until(ExpectedConditions.presenceOfElementLocated(locator));
+	}
+	
+	//**************** PageReadyState *******************************
+	public boolean isPageLoaded(int timeOut) {
+		WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(timeOut));
+		String flag = wait.until(ExpectedConditions.jsReturnsValue("return document.readyState == 'complete'")).toString();
+		return Boolean.parseBoolean(flag);
+	}
+
 }
